@@ -1,0 +1,290 @@
+
+ 
+CIN = Switch2;   
+"CIN = 1;      
+ 
+ 
+"for adding 0/4/9 to point total
+YB3..YB0 node istype 'com';
+YBALL = [YB3..YB0];
+
+Y3..Y0 node istype 'com';
+YALL = [Y3..Y0];
+
+X3..X0 node istype 'com';
+XALL = [X3..X0];
+
+S0..S3 node istype 'com';
+SALL = [S3..S0];
+ 
+CA0..CA3 node istype 'com';
+CARRYALL = [CA3..CA0];
+
+Switch1,Switch2,T1,T2 node istype 'reg';
+
+CAB0..CAB3 node istype 'com';
+SB0..SB3 node istype 'com';
+SBALL = [SB3..SB0];
+ 
+"for 10s place digit of point total
+L3..L0 node istype 'reg';
+LALL = [L3..L0];
+ 
+"ones holder
+XB3..XB0 node istype 'reg';
+XBALL = [XB3..XB0];
+
+"for adding point total
+GPT0 = XB0 & YB0;
+GPT1 = XB1 & YB1;
+GPT2 = XB2 & YB2;
+GPT3 = XB3 & YB3;
+ 
+PB0 = XB0$YB0;
+PB1 = XB1$YB1;
+PB2 = XB2$YB2;
+PB3 = XB3$YB3;
+ 
+"for adder/subtractor and comparator taken from notes
+G0 = X0&(Y0$CIN); " generate function definitions
+G1 = X1&(Y1$CIN);
+G2 = X2&(Y2$CIN);
+G3 = X3&(Y3$CIN);
+ 
+P0 = X0$(Y0$CIN); " propagate function definitions
+P1 = X1$(Y1$CIN);
+P2 = X2$(Y2$CIN);
+P3 = X3$(Y3$CIN);
+ 
+"Don't remember what these are for
+SR3..SR0 node istype 'reg';
+SRALL = [SR3..SR0];
+ 
+"reg variables for shift register
+B6..B0, C6..C0, D6..D0 node istype 'reg';
+A6..A0 node istype 'com';
+AALL = [A6..A0];
+BALL = [B6..B0];
+CALL = [C6..C0];
+DALL = [D6..D0];
+ 
+"BCD Placeholders
+BCDPLACEA6..BCDPLACEA0 node istype 'com';
+BCDPLACEA = [BCDPLACEA6..BCDPLACEA0];
+BCDPLACEB6..BCDPLACEB0 node istype 'com';
+BCDPLACEB = [BCDPLACEB6..BCDPLACEB0];
+ 
+"counts game round
+COUNT3..COUNT0 node istype 'reg';
+CTALL = [COUNT3..COUNT0];
+CT1 = [0,0,0,1];
+CT2 = [0,0,1,0];
+CT3 = [0,0,1,1];
+CT4 = [0,1,0,0];
+CT5 = [0,1,0,1];
+CT6 = [0,1,1,0];
+CT7 = [0,1,1,1];
+CT8 = [1,0,0,0];
+CT9 = [1,0,0,1];
+CT10 = [1,0,1,0];
+ 
+"cycles through print messages
+WORD3..WORD0 node istype 'reg';
+WORDS = [WORD3..WORD0];
+ 
+W0 =  [0,0,0,0]; "blank
+W1 =  [0,0,0,1]; "LD
+W2 =  [0,0,1,0]; "RD
+W3 =  [0,0,1,1]; "blank
+W4 =  [0,1,0,0]; "y
+W5 =  [0,1,0,1]; "e
+W6 =  [0,1,1,0]; "a
+W7 =  [0,1,1,1]; "h
+W8 =  [1,0,0,0]; "l
+W9 =  [1,0,0,1]; "o
+W10 = [1,0,1,0]; "s
+W11 = [1,0,1,1]; "e
+W12 = [1,1,0,0]; "r
+ 
+ 
+"cycles through rounds
+STATE_DIAGRAM CTALL
+ 
+state CT1: goto CT2;
+state CT2: goto CT3;  
+state CT3: goto CT4;
+state CT4: goto CT5;
+state CT5: goto CT6;  
+state CT6: goto CT7;
+state CT7: goto CT8;
+state CT8: goto CT9;  
+state CT9: goto CT10;
+state CT10: goto CT10;
+
+"Flags for adder/subtractor and comparator
+CBF,NBF,ZBF,VBF node istype 'com';
+BFLAGS = [CBF,NBF,ZBF,VBF];
+ 
+"Flags for adding total points
+CF, NF, ZF, VF node istype 'com';
+FLAGS = [CF,NF,ZF,VF];
+
+"cycles through message strings
+STATE_DIAGRAM WORDS
+state W0: goto W1;
+state W1: goto W2;
+state W2: goto W3;
+state W3: if(L3 # L2&L1&L0 # L2&L1&!L0 # L2&!L1&L0) then W4
+          else goto W8;
+state W4: goto W5;
+state W5: goto W6;
+state W6: goto W7;
+state W7: goto W0;
+ 
+state W8: goto W9;
+state W9: goto W10;
+state W10: goto W11;
+state W11: goto W12;
+state W12: goto W0;
+ 
+ 
+" ======================= START OF EQUATIONS SECTION =================================
+ 
+EQUATIONS
+ 
+" Internal oscillator setup (disable/enable and reset variables) and OSCTIMER instance
+ 
+osc_dis = 0;
+osc_rst = 0;
+ 
+I1 OSCTIMER(osc_dis, osc_rst, osc_out, tmr_out);
+ 
+ 
+" User-defined equations, clocked-operator tables, and/or state diagram definitions follow
+ 
+"Switches
+Switch1.D = 0;
+Switch1.CLK = 0;
+Switch1.AP = S1_NO;
+Switch1.AR = S1_NC;
+ 
+Switch2.D = 0;
+Switch2.CLK = 0;
+Switch2.AP = S2_NO;
+Switch2.AR = S2_NC;
+ 
+"STEP 1 Full Adder
+"XALL = [DIP7..DIP4];
+YALL = [DIP3..DIP0];
+ 
+CA0 = G0 # CIN&P0; " carry function definitions
+CA1 = G1 # G0&P1 # CIN&P0&P1;
+CA2 = G2 # G1&P2 # G0&P1&P2 # CIN&P0&P1&P2;
+CA3 = G3 # G2&P3 # G1&P2&P3 # G0&P1&P2&P3 # CIN&P0&P1&P2&P3;
+ 
+S0 = CIN$P0;
+S1 = CA0$P1;
+S2 = CA1$P2;
+S3 = CA2$P3;
+ 
+//[LED7..LED4] = FLAGS;
+[LED3..LED0] = SALL;
+ 
+CF = !(CA3$CIN);
+NF = S3;
+ZF = !(S3#S2#S1#S0);
+VF = (CA3$CA2);
+ 
+//[LED15..LED12] = XALL;
+//[LED11..LED8] = YALL;
+ 
+"STEP 2
+
+LED18 = ZF;						"Green
+LED17 = NF $ VF;				"Yellow
+LED16 = VF&NF # !VF&!NF&!ZF;	"Red
+[LED18..LED16].EN = DIP7;
+ 
+ 
+"STEP 3
+SR0 := (SR2$SR3)$(!SR2&!SR1&!SR0);
+SR1 := SR0;
+SR2 := SR1;
+SR3 := SR2;
+ 
+SRALL.clk = Switch1;
+SRALL.AR = Switch2;
+[LED11..LED8] = SRALL;
+[LED11..LED8].EN = DIP7;
+XALL = SRALL;
+ 
+"STEP 4
+CTALL.clk = Switch1;
+DIS4 = ((CTALL == 1)&char1)#((CTALL == 2)&char2)#((CTALL == 3)&char3)#((CTALL == 4)&char4)#
+       ((CTALL == 5)&char5)#((CTALL == 6)&char6)#((CTALL == 7)&char7)#((CTALL == 8)&char8)#                
+        ((CTALL == 9)&char9)#((CTALL == 10)&DALL); "CTALL == 10) & DALL; <- commented out for last step, leave in for step 4
+[COUNT3..COUNT1].ar = Switch2;
+COUNT0.ap = Switch2;
+ 
+ 
+ 
+"STEP 5  
+ 
+YBALL = [0,0,0,0]&(VF&NF # !VF&!NF&!ZF) # [0,1,0,0]&(NF $ VF) # [1,0,0,1]&ZF;
+ 
+CAB0 = GPT0; " carry function definitions
+CAB1 = GPT1 # GPT0&PB1;
+CAB2 = GPT2 # GPT1&PB2 # GPT0&PB1&PB2;
+CAB3 = GPT3 # GPT2&PB3 # GPT1&PB2&PB3 # GPT0&PB1&PB2&PB3;
+ 
+SB0 = PB0;
+SB1 = CAB0$PB1;
+SB2 = CAB1$PB2;
+SB3 = CAB2$PB3;
+ 
+CBF = !CAB3;
+NBF = SB3;
+ZBF = !(SB3#SB2#SB1#SB0);
+VBF = (CAB3$CAB2);
+"[LED23..LED20] = SBALL;
+XBALL := SBALL + ([0,1,1,0] & (CAB3 # SB3&SB2 # SB3&SB1));   "BCD corrector, 1s digit
+ 
+XBALL.clk = Switch1 & (CTALL != 10);
+XBALL.ar = Switch2;
+LED28 = (CAB3 # SB3&SB2 # SB3&SB1);
+LALL := LALL + ([0,0,0,(CAB3 # SB3&SB2 # SB3&SB1)]); "BCD, 10s digit
+LALL.clk = Switch1 & (CTALL != 10);
+LALL.ar = Switch2;
+ 
+BCDPLACEA = (XBALL == 7)&char7 # (XBALL == 8)&char8 # (XBALL == 9)&char9 #(XBALL == 0)&char0 # (XBALL == 6)&char6 # (XBALL == 1)&char1 # (XBALL == 2)&char2 # (XBALL == 3)&char3 # (XBALL == 4)&char4 # (XBALL == 5)&char5;
+BCDPLACEB = (LALL == 7)&char7 # (LALL == 8)&char8 # (LALL == 9)&char9 #(LALL == 0)&char0 # (LALL == 6)&char6 # (LALL == 1)&char1 # (LALL == 2)&char2 # (LALL == 3)&char3 # (LALL == 4)&char4 # (LALL == 5)&char5;
+ 
+ 
+DIS1 = AALL&(CTALL == 10) # (CTALL != 10)&BCDPLACEA;
+DIS2 = BALL&(CTALL == 10) # (CTALL != 10)&BCDPLACEB;
+ 
+ 
+"STEP 6
+T2.clk = tmr_out;
+T2 := !T2;
+T1.clk = T2;
+T1 := !T1;
+ 
+DALL := CALL;
+CALL := BALL;
+BALL := AALL;
+DIS3 = CALL; "DIS4 is in STEP 4, DIS1 and 2 in STEP 5
+ 
+AALL = (WORDS == 0)&blank # (WORDS == 1)&BCDPLACEB # (WORDS == 2)&BCDPLACEA
+        # (WORDS == 3)&blank # (WORDS == 4)&charY # (WORDS == 5)&charE
+        # (WORDS == 6)&charA # (WORDS == 7)&charH # (WORDS == 8)&charL
+        # (WORDS == 9)&charO # (WORDS == 10)&charS # (WORDS == 11)&charE # (WORDS == 12)&charR;
+ 
+[BALL,CALL,DALL].clk = T1;
+[BALL,CALL,DALL].ar = Switch2;
+ 
+WORDS.clk = T1 & (CTALL == 10);
+WORDS.ar = Switch2;
+ 
+ 
+END
